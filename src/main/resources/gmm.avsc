@@ -1,0 +1,10 @@
+{"namespace": "gmm.avro",
+	"type": "record",
+	"name": "AvroGmm",
+	"fields": [
+		{"name": "weights", "type": {"type": "array", "items": "double"}},
+		{"name": "means", "type": {"type": "array", "items": {"type": "array", "items": "double"}}},
+		{"name": "precisions", "type": {"type": "array", "items": {"type": "array", "items": {"type": "array", "items": "double"}}}}
+	]
+}
+

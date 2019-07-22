@@ -1,0 +1,102 @@
+//Project based on sklearn.mixture.GaussianMixture 
+// https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html#sklearn.mixture.GaussianMixture
+group 'gmm'
+version '1.0'
+
+apply plugin: 'scala'
+/*
+apply plugin: 'idea'
+buildDir = "/mnt/ramdisk/build/$group"
+idea {
+	module {
+		inheritOutputDirs = true
+		downloadJavadoc = false
+		downloadSources = false
+	}
+}
+*/
+//apply plugin: 'application'
+//mainClassName = 'GaussianMixtureModel'
+
+def scalaVersion = '2.12.8'
+def scalaRelease = scalaVersion.split('\\.').take(2).join('.')
+
+tasks.withType(ScalaCompile){
+	scalaCompileOptions.with {force = true}
+	scalaCompileOptions.additionalParameters = ["-feature"]
+}
+
+// It must set the GaussianMixtureModel.scala the chosen library: ojAlgo or Nd4j, weka or smile
+def matrix_lib = 'ojAlgo'
+//def matrix_lib = 'Nd4j' //Do not work well with spark
+//def ml_lib = 'weka'
+def ml_lib = 'smile'
+println('*'*150)
+println("Matrix: $matrix_lib")
+println("ML: $ml_lib")
+println('*'*150)
+
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile "org.scala-lang:scala-library:$scalaVersion"
+	compile group: 'com.fasterxml.jackson.module', name: "jackson-module-scala_$scalaRelease", version: '2.9.9'
+	compile group: 'org.xerial.snappy', name: 'snappy-java', version: '1.1.7.3'
+	compile group: 'org.apache.avro', name: 'avro', version: '1.9.0'
+	if (matrix_lib == "ojAlgo")	{
+		compile 'org.ojalgo:ojalgo:47.2.0'
+		compileOnly group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
+	}
+	else {
+		compileOnly 'org.ojalgo:ojalgo:47.2.0'
+		compile group: 'org.nd4j', name: 'nd4j-native-platform', version: '0.9.1'
+	}
+	if (ml_lib == "weka"){
+//		The below line make output lib smaller but only make possible to run on Linux by excluding others OS
+		compile group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.8.3', {
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_ref-linux-i686'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_system-linux-i686'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_ref-linux-armhf'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_system-linux-armhf'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_ref-win-i686'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_system-win-i686'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_ref-osx-x86_64'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_system-osx-x86_64'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_ref-win-x86_64'
+			exclude group: 'com.github.fommil.netlib', module: 'netlib-native_system-win-x86_64'
+		}
+//		compile group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.8.3'
+		compileOnly "com.github.haifengl:smile-core:1.5.3"
+	}
+	else {
+		compileOnly group: 'nz.ac.waikato.cms.weka', name: 'weka-stable', version: '3.8.3'
+		compile "com.github.haifengl:smile-core:1.5.3"
+	}
+}
+
+task uberJar(type: Jar) {
+	manifest {
+		attributes	'Implementation-Title': 'Facebook test',
+//					'Implementation-Version': version,
+//					'Built-By': System.getProperty('user.name'),
+				'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss'),
+				'Java-JDK': System.getProperty('java.version'),
+				'Java-Vendor': System.getProperty('java.vm.vendor'),
+				'Scala-SDK': scalaVersion
+//				'Main-Class': project.hasProperty("mainClassName") ? project.getProperty("mainClassName") : "package.MyDefaultMain"
+	}
+//	eachFile { it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
+	archiveClassifier = '' //sufix filename
+	from sourceSets.main.output
+	dependsOn configurations.runtimeClasspath
+	from (configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }){
+		exclude 'META-INF/INDEX.LIST','META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.MF'
+		exclude 'META-INF/license/','META-INF/maven/', 'META-INF/services/' //, 'META-INF/native/'
+		exclude 'META-INF/LICENSE*/','META-INF/NOTICE*/','META-INF/DEPENDENCIES/'
+//		exclude 'LICENSE*','NOTICE','scala-*.properties'
+//		exclude 'META-INF/*/'
+	}
+}
