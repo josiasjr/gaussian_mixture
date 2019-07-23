@@ -81,14 +81,13 @@ dependencies {
 
 task uberJar(type: Jar) {
 	manifest {
-		attributes	'Implementation-Title': 'Facebook test',
+		attributes	'Implementation-Title': 'Gaussian Mixture Models Library',
 //					'Implementation-Version': version,
 //					'Built-By': System.getProperty('user.name'),
 				'Built-Date': new Date().format('yyyy-MM-dd HH:mm:ss'),
 				'Java-JDK': System.getProperty('java.version'),
 				'Java-Vendor': System.getProperty('java.vm.vendor'),
 				'Scala-SDK': scalaVersion
-//				'Main-Class': project.hasProperty("mainClassName") ? project.getProperty("mainClassName") : "package.MyDefaultMain"
 	}
 //	eachFile { it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
 	archiveClassifier = '' //sufix filename
