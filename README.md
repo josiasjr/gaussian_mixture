@@ -11,5 +11,5 @@ This project uses an anomaly detection system to determine the threshold of desi
 
 
 # For more information
-The Gaussian mixture models implementation is a port from:
+The Gaussian mixture models implementation is a port from:  
 https://scikit-learn.org/stable/modules/generated/sklearn.mixture.GaussianMixture.html
